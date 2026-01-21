@@ -33,12 +33,18 @@ A powerful, local-first web application for generating Images, Videos, and Music
 - **Theme Support**: Beautiful Dark and Light modes.
 - **Responsive Design**: Works on Desktop and Mobile.
 
+## 🌐 Live Demo
+
+Try the live demo here: **[unlimitedai.indonesiabelajarai.com](https://unlimitedai.indonesiabelajarai.com)**
+
+> **⚠️ Important**: This is a client-side demo. To generate actual media, you must click the **Settings (Gear Icon)** and provide your own **n8n Webhook URLs** (see setup guide below).
+
 ## 🚀 Getting Started
 
 ### Prerequisites
 - A modern web browser.
 - An actively running **n8n** instance (Local or Cloud).
-- Workflows set up in n8n for Image, Video, Lyrics, and Music generation.
+- **n8n Workflow**: Import the provided workflow file (see setup guide below).
 
 ### Installation
 1. **Clone the repository**:
@@ -57,6 +63,26 @@ A powerful, local-first web application for generating Images, Videos, and Music
      # Or using VS Code Live Server extension
      ```
    - Open `http://localhost:8000` in your browser.
+
+## ⚡ n8n Workflow Setup
+
+We have included a complete, all-in-one workflow file to get you started immediately. This workflow handles all media generation tasks.
+
+**Option 1: Import from File (Recommended)**
+1. Navigate to the `n8n-workflow` folder in this repository.
+2. Locate the file: `unlimited-ai-generator-n8n-flow.json`.
+3. Open your n8n dashboard.
+4. Click the menu in the top right (or "Add Workflow") and select **Import from File**.
+5. Upload the JSON file.
+
+**Option 2: Import from URL**
+You can also import the workflow directly using the raw GitHub link:
+1. Open your n8n dashboard.
+2. Select **Import from URL**.
+3. Paste the following link:
+   ```
+   https://raw.githubusercontent.com/indonesiabelajarai/unlimited-ai-media-generator/main/n8n-workflow/unlimited-ai-generator-n8n-flow.json
+   ```
 
 ## 🔗 Connecting to n8n
 
