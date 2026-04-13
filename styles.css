@@ -1353,4 +1353,29 @@ body {
     filter: none;
     opacity: 0.75;
 }
+
+.created-by {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100%;
+    justify-content: center;
+}
+
+.conextlab-logo {
+    height: 24px;
+    width: auto;
+    object-fit: contain;
+    opacity: 0.85;
+}
+
+[data-theme="light"] .conextlab-logo {
+    opacity: 0.9;
+}
+
+.nvidia-footer {
+    flex-direction: column;
 }
