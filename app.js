@@ -39,7 +39,8 @@ const state = {
         lyrics: '',
         isGeneratingLyrics: false,
         isGeneratingMusic: false,
-        audioUrl: null
+        audioUrl: null,
+        audioBlob: null
     }
 };
 
@@ -640,42 +641,70 @@ async function generateMusic() {
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
-        const result = await response.json();
-        console.log('Music generation result:', result);
+        const contentType = response.headers.get('content-type') || '';
+        let audioUrl = null;
+        let metadata = {
+            imageUrl: "https://conextlab.net/assets/conextlab-logo-rounded-BcrUS9UU.png",
+            title: state.music.theme ? `AI Song: ${state.music.theme}` : "Untitled AI Song",
+            tags: `${state.music.genre}, ${state.music.mood}`,
+            duration: state.music.duration
+        };
         
-        let song = null;
-        if (result.data?.response?.sunoData && result.data.response.sunoData.length > 0) {
-            song = result.data.response.sunoData[0];
-        } else if (result.response?.sunoData && result.response.sunoData.length > 0) {
-            song = result.response.sunoData[0];
-        } else if (result.sunoData && result.sunoData.length > 0) {
-            song = result.sunoData[0];
-        } else if (Array.isArray(result) && result.length > 0) {
-            song = result[0];
-        } else if (result && (result.audioUrl || result.audio_url)) {
-            song = result;
+        if (contentType.includes('application/json')) {
+            const result = await response.json();
+            console.log('Music generation JSON result:', result);
+            
+            let song = null;
+            if (result.data?.response?.sunoData && result.data.response.sunoData.length > 0) {
+                song = result.data.response.sunoData[0];
+            } else if (result.response?.sunoData && result.response.sunoData.length > 0) {
+                song = result.response.sunoData[0];
+            } else if (result.sunoData && result.sunoData.length > 0) {
+                song = result.sunoData[0];
+            } else if (Array.isArray(result) && result.length > 0) {
+                song = result[0];
+            } else if (result && (result.audioUrl || result.audio_url)) {
+                song = result;
+            }
+            
+            if (!song) {
+                throw new Error('No song details found in the response');
+            }
+            
+            audioUrl = song.audioUrl || song.audio_url || song.streamAudioUrl || song.stream_audio_url;
+            if (!audioUrl) {
+                throw new Error('No audio URL found in the song details');
+            }
+            
+            metadata.imageUrl = song.imageUrl || song.image_url || song.avatarUrl || song.avatar_url || metadata.imageUrl;
+            metadata.title = song.title || metadata.title;
+            metadata.tags = `${state.music.genre}, ${state.music.mood}`;
+            metadata.duration = song.duration || metadata.duration;
+            
+            state.music.audioUrl = audioUrl;
+            state.music.audioBlob = null;
+        } else {
+            // Handle binary response (e.g., audio/mpeg, application/octet-stream)
+            const arrayBuffer = await response.arrayBuffer();
+            console.log('Received binary audio', arrayBuffer.byteLength, 'bytes');
+            
+            let mimeType = 'audio/mpeg';
+            if (contentType.startsWith('audio/')) {
+                mimeType = contentType;
+            }
+            
+            const audioBlob = new Blob([arrayBuffer], { type: mimeType });
+            state.music.audioBlob = audioBlob;
+            
+            audioUrl = URL.createObjectURL(audioBlob);
+            state.music.audioUrl = audioUrl;
         }
         
-        if (!song) {
-            throw new Error('No song details found in the response');
-        }
+        state.music.imageUrl = metadata.imageUrl;
+        state.music.title = metadata.title;
+        state.music.tags = metadata.tags;
         
-        const audioUrl = song.audioUrl || song.audio_url || song.streamAudioUrl || song.stream_audio_url;
-        if (!audioUrl) {
-            throw new Error('No audio URL found in the song details');
-        }
-        
-        const imageUrl = song.imageUrl || song.image_url || song.avatarUrl || song.avatar_url || "https://conextlab.net/assets/conextlab-logo-rounded-BcrUS9UU.png";
-        const title = song.title || "Untitled AI Song";
-        const tags = `${state.music.genre}, ${state.music.mood}`;
-        const duration = song.duration || state.music.duration;
-        
-        state.music.audioUrl = audioUrl;
-        state.music.imageUrl = imageUrl;
-        state.music.title = title;
-        state.music.tags = tags;
-        
-        displayGeneratedMusic(audioUrl, { imageUrl, title, tags, duration });
+        displayGeneratedMusic(audioUrl, metadata);
         showToast('Music generated successfully!', 'success');
         
     } catch (error) {
